@@ -30,11 +30,11 @@
 | 評估/回測/推薦 | `backend/evaluation/` | ✅ 審查修正完成，**有一項需要人決定（§5 D1）** | 347 通過 |
 | 資料層 | `backend/data.py` | 🟡 修正已做、有測試，但修正者在回報前被切斷 → **需驗收（§4 B）** | 160 通過 |
 | 伺服器/工作佇列 | `backend/server.py`, `backend/jobs.py` | 🟡 同上（evidence 填入在 `jobs.py`） | 172 通過 |
-| 前端 | `frontend/` | 🔴 **進行到一半**：推薦頁已大幅重寫，但測試/fixtures 還沒對齊 | 345 中 **16 個失敗**、1 略過 |
+| 前端 | `frontend/` | 🟢 §4A 完成（2026-10-31）：測試與 fixtures 已對齊新契約；四個頁面在 1280/390 px 渲染後肉眼檢查過。**仍未在真實瀏覽器驗證（§7.1）** | 353 全過、1 略過 |
 
-後端合計 856 個測試全過；前端 16 個失敗全部是「前端尚未與新契約/新 fixtures 對齊」，不是後端問題（失敗清單見 §4 A）。
+後端合計 856 個測試全過；前端 353 個全過（第一次接手時有 16 個失敗，原因全是前端測試停在舊契約，已於 2026-10-31 修完，見 §4 A）。
 
-**app 現在可以跑**（啟動方式見 §3），但**推薦頁在前端收尾前不要當真**。
+**app 現在可以跑**（啟動方式見 §3）。⚠️ 2026-10-31 接手時 Yahoo 對沙箱回 429，**沒有用真實資料跑過端到端驗證（§4D 的伺服器實測尚未做）**。
 
 ### 誠實結論（務必保留在產品文字裡）
 - 真實資料（2330、0050、6488 與 60 檔流動性最高的股票，1250 個交易日、2021-08 ~ 2026-10，walk-forward）：三個預測期間（1/5/20 日）的模型**都沒有可證明的預測優勢**；命中率≈基準率。（注意：驗證的檢定力有限，見 §6「統計（檢定力很低）」——這是「未能證明有優勢」，不是「證明沒有優勢」。）
@@ -96,7 +96,12 @@
 
 ## 4. 待辦（依優先順序；每項都有驗收條件）
 
-### A. 前端收尾（P0，最大缺口）
+### A. 前端收尾 — ✅ 已完成（2026-10-31）
+**結果**：16 個失敗全修；前端 353 測試全綠。做法：舊行為的測試依新契約刻意改寫並寫明原因（用詞「偏多候選」、用 `rank_signal` 排名、儀表板整數百分比、`模型一致度`、h=20 驗證卡、`signalInfo(sig, unlocked)`），沒有放寬任何斷言；新增測試涵蓋證據橫幅、領先/落後者的 σ 與低波動標籤、分數欄隱藏、IC 晶片、平盤說明、驗證面板範圍說明。補做的程式變更：`view_picks.js`（B=0 時全體相同的「成本後分數」欄隱藏；驗證面板寫明前 5 名／列出前 10 名／不套用偏多候選門檻；權益曲線下方貼上波動與 β 提醒）、`view_backtest.js`（IC≤0 不顯示顯著晶片 S-02；`p_up_event=up_given_move` 時說明平盤不計入）、`charts.js`（儀表板無障礙文字不再用 `1−p_up` 當下跌機率）、`style.css`（`uv-scope`）。下面的清單保留作為原始需求紀錄。
+
+**仍開放**：D1（整體驗證 h=1 判定在淨虧損時是否封頂）——政策決定，未動；前端 `verdictBox` 仍會在 `beats_ew_after_costs===false` 時顯示「中等優勢」。
+
+（以下為原始待辦，已完成。）
 推薦頁（`frontend/view_picks.js`）已重寫（有 leaders/laggards/rank_signal/低波動標籤/evidence 橫幅/`suppressed_reason`/用詞閘門），但 fixtures 與測試還停在舊契約。16 個失敗測試：
 - `test_front_method`：`PageContent.test_pipeline_flow_has_eight_steps`
 - `test_front_picks`：`HorizonSwitching.test_one_month_has_candidates_cards_with_all_fields`、`…test_switch_while_computing_aborts_the_old_poll`、`RealOneWeek.test_banner_market_strip_and_empty_buys`、`RealOneWeek.test_clean`、`RealOneWeek.test_full_table_has_every_scored_name_and_is_sortable`、`StatesAndVariants.test_empty_universe_and_missing_blocks`、`StatesAndVariants.test_schema_payload_with_buys_and_avoids`、`UniversePanel.test_run_shows_progress_then_verdict_kpis_stats_and_chart`
@@ -112,7 +117,7 @@
 5. 回測頁（`view_backtest.js`）：基準說明改為「因果基準率」，另列 `brier_skill_oracle`/`brier_baseline_oracle`；ECE 旁顯示 `ece_noise_floor`；IC chip 只有 `ic>0` 才顯示（S-02）；樣本數文字依 `probabilistic.p_up_event`（`up_given_move` 時平盤不計）。
 6. 驗收：前端 345 測試全綠；用 weasyprint 把每個頁面（`#/stock/2330`、`#/picks`、`#/backtest/2330`、`#/method`）在 1280 與 390 px 渲染成 PNG **實際看過**；頁面任何地方在 evidence 為 `no_edge` 時都不出現「建議買進」。
 
-### B. 驗收伺服器與資料層（P0）
+### B. 驗收伺服器與資料層（P0）— 測試層面已驗收（2026-10-31），**實機驗收未做**
 `data.py`/`jobs.py`/`server.py` 的修正者在回報前被切斷，但程式與測試都在，且測試全過。請逐項確認（對照 `docs/audit/FINDINGS.md` 標「verify」的列）：
 - **C-04**：刷新時 Yahoo 對最後一個已完成日給全 null 列，不得刪掉快取中有效的最後一根 K 棒（`tests/test_data_cache.py`、`tests/test_server_audit.py`）。
 - **C-05**：快取鍵含 open/high/low/volume 與程式碼指紋。
@@ -123,7 +128,9 @@
 - 資料層尾端占位棒（量化修正者回報）：快取資料尾端有 2026-10-23 的占位 K 棒（60/63 檔），`data.completed()` 保留它；引擎已忽略（預測起點為最後一根真實棒 2026-10-22），但 `forecast['asof']`/`last_close`/`chg_1d(=0.0)` 與伺服器備註「預測起點為該日收盤價」仍取自占位列。確認 P-01 的修正已涵蓋；否則在資料層修掉。
 - 其他：`/api/search` 空 `q` 要回約定的熱門清單（12 檔 + 0050/0056/00878），小 `limit` 也一樣；`README.md` 與 `requirements.txt` 對齊現實（Python 下限、`TWQ_HOST`、誠實限制章節）。
 
-### C. 型別註解（小）
+**2026-10-31 驗收紀錄**：C-04（`test_data_cache.py`）、C-05（快取鍵含 OHLCV 與程式碼指紋）、P-01（`test_data_closures.py`、`test_data_parse.py`、`test_server_audit.py`）、P-14（退化／異常上游資料回 422/503）、evidence 填入（`test_server_audit.py`：同 horizon 的已快取驗證才算 evidence，其他為 `source:none`）、`/api/search` 空 `q` 熱門清單，每項都有對應的測試且全綠。`tests/schema_check.py::check_recommendations` 其實**已經是新契約**（`all` 依 `rank_signal` 遞減、全域 rank、`n_buy_total`、`suppressed_reason`），並對真實 h=1/5/20 fixtures 全數通過——本節原本寫「仍是舊契約」已過期。`README.md`（測試基線、`TWQ_HOST`、前端測試安裝、未在瀏覽器驗證的限制）已更新。**未做**：用真實資料起 server 打各端點（沙箱連 Yahoo 回 429）；請在能連網的機器上做 §4D。
+
+### C. 型別註解（小）— ✅ 已完成（`backend/types.py` 的 `p_up`、`pit` 註解已更新）
 `backend/types.py`（原為建構者唯讀，現可更新）的註解過期：`HorizonForecasts.p_up` 實為 `P(R>0|R≠0)`，`pit` 實為對「四捨五入收盤價」的隨機化 PIT。
 
 ### D. 最終驗證（P0，收尾必做）

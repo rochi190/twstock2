@@ -34,7 +34,7 @@ pip install -r requirements.txt     # numpy, scipy
 ```bash
 PORT=8080 ./run.sh                  # 換連接埠（--port 0 = 自動挑選一個空的）
 ./run.sh --port 8080 --quiet        # 其餘參數直接傳給 backend.server
-HOST=0.0.0.0 ./run.sh               # 對區域網路開放（預設只綁 127.0.0.1；沒有任何登入機制，請勿暴露在公網）
+TWQ_HOST=0.0.0.0 ./run.sh           # 對區域網路開放（預設只綁 127.0.0.1；沒有任何登入機制，請勿暴露在公網）
 ./run.sh --precompute --universe-bt # 先預先計算快取（見下），再啟動伺服器
 ```
 
@@ -171,6 +171,17 @@ python3 -m unittest discover -s tests -p "test_server_*.py"     # 伺服器：�
 TWQ_SKIP_SLOW=1 python3 -m unittest discover -s tests -p "test_server_*.py"   # 略過啟動真實行程池與引擎的整合測試
 ```
 
+目前基線（2026-10-31）：量化核心 177、評估 347（1 略過）、資料層 160、伺服器 172、前端 353（`test_front_*.py`，1 略過），全數通過。
+前端測試在 V8（`mini-racer`）裡跑假 DOM，另需 `pillow`、`weasyprint`、`pymupdf` 與 CJK 字型（`fonts-noto-cjk`）才會執行版面渲染檢查；
+缺套件時這些測試會被略過而不是失敗：
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install numpy scipy mini-racer pillow weasyprint pymupdf
+.venv/bin/python -m unittest discover -s tests -p "test_front_*.py"
+```
+
+注意：mini-racer 的測試程序在測試結束後可能不會自行結束（結果已印出），請自行加 `timeout`。
+
 `tests/schema_check.py` 提供 `check_forecast`、`check_recommendations`、`check_history`、`check_search`、`check_backtest`、
 `check_universe_report` 等函式，回傳「不符合 DESIGN.md 第 6 節格式的問題清單」（空清單 = 合格），可重複用於手動端到端驗證。
 單元測試不連網；唯一連網的是你手動執行的端到端檢查。
@@ -190,6 +201,7 @@ TWQ_SKIP_SLOW=1 python3 -m unittest discover -s tests -p "test_server_*.py"   # 
   回測假設「訊號出現後隔日開盤成交」（可選收盤成交，較樂觀）。
 * **調參。** 超參數事先依理論固定；僅有兩個數字用到 2021-08 以前的 2330／0050 資料選定（見 `backend/quant/engine.py` 文件字串），
   但仍不能排除細微的選擇偏誤。
+* **前端從未在真實瀏覽器中驗證。** 只用 V8 假 DOM 與 WeasyPrint 渲染檢查過；上線前請用 Chrome／Firefox 實測 Canvas 圖表、行動版與深色模式。
 * **只適合本機單人使用。** 沒有身分驗證，預設只綁定 127.0.0.1；前端與 API 未針對公開網路部署強化。尚未在 Windows 上測試（`run.sh` 是 bash，
   可改用 `python -m backend.server`）。
 

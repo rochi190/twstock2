@@ -72,12 +72,12 @@ class HorizonForecasts:
     Everything at row i may only use bars 0..i.  NaN where no forecast exists."""
 
     h: int
-    p_up: np.ndarray  # (n,) calibrated P(R > 0)
+    p_up: np.ndarray  # (n,) calibrated P(R > 0 | R != 0) when WalkForward.config['p_up_event'] == 'up_given_move' (flat closes are excluded from the event; so 1 - p_up is NOT P(fall))
     p_up_raw: np.ndarray  # (n,) before calibration
     mu: np.ndarray  # (n,) E[R], R = ln(adjC[i+h] / adjC[i])
     sigma: np.ndarray  # (n,) std of R
     q: np.ndarray  # (n, len(QLEVELS)) predictive quantiles of R
-    pit: np.ndarray  # (n,) predictive CDF evaluated at realized R (NaN until realized) — evaluation only
+    pit: np.ndarray  # (n,) predictive CDF at the realized R (NaN until realized), randomized within the tick for rounded closes / flat days — evaluation only
     realized: np.ndarray  # (n,) realized R (NaN for the last h rows) — evaluation only
     comp_p_up: dict = field(default_factory=dict)  # component name -> (n,)
     comp_mu: dict = field(default_factory=dict)  # component name -> (n,)
