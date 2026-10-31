@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="台股量化實驗室：以統計模型估計台股與 ETF 的漲跌機率、預測區間，並以樣本外回測誠實檢驗模型是否真的有效。僅供研究，非投資建議。">
+<title>台股量化實驗室</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232457c5'/%3E%3Cpath d='M7 22l5-6 4 3 8-10' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style_views.css">
+<script>
+/* apply a remembered light/dark choice before first paint (core.js repeats this logic) */
+(function () { try { var t = JSON.parse(localStorage.getItem('tq.theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+</script>
+<script src="format.js" defer></script>
+<script src="charts.js" defer></script>
+<script src="core.js" defer></script>
+<script src="view_stock.js" defer></script>
+<script src="view_picks.js" defer></script>
+<script src="view_backtest.js" defer></script>
+<script src="view_method.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要內容</a>
+<header class="app-header">
+  <div class="header-inner">
+    <a class="brand" href="#/stock" aria-label="台股量化實驗室，回到個股預測">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" focusable="false"><path d="M4 17l5-6 4 3 7-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="brand-text"><span class="brand-name">台股量化實驗室</span><span class="brand-en">TW QUANT LAB</span></span>
+    </a>
+    <div class="header-search" id="search-host"></div>
+    <nav class="main-nav" id="nav" aria-label="主要導覽">
+      <a href="#/stock" data-route="stock">個股預測</a>
+      <a href="#/picks" data-route="picks">今日模型觀察</a>
+      <a href="#/backtest" data-route="backtest">歷史驗證</a>
+      <a href="#/method" data-route="method">方法說明</a>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="切換佈景主題">
+      <span class="theme-icon" id="theme-icon" aria-hidden="true"></span><span class="theme-label" id="theme-label">自動</span>
+    </button>
+  </div>
+</header>
+<main class="app-main" id="main" tabindex="-1">
+  <div class="view-root" id="view"></div>
+  <noscript><p>此網站需要啟用 JavaScript 才能使用。</p></noscript>
+</main>
+<div class="sr-only" id="status" role="status" aria-live="polite"></div>
+<footer class="app-footer">
+  <p>本工具為統計模型之研究與教育用途，<strong>非投資建議</strong>；所有預測皆為機率估計，過去表現不代表未來，投資一定有風險。</p>
+  <p>資料來源：Yahoo Finance、臺灣證券交易所（TWSE）與證券櫃檯買賣中心（TPEx）公開資料，可能有延遲或錯誤。台股慣例：紅色代表上漲、綠色代表下跌。</p>
+</footer>
+</body>
+</html>

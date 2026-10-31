@@ -1,0 +1,13 @@
+# runtime cache (re-created on first run; ~95 MB)
+data_cache/
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+# local scratch
+*.log
