@@ -316,6 +316,19 @@
   }
 
   // ====================================================================================== full table
+  /** The shrunk cost-adjusted score is identical for every name when the shrinkage factor B is 0 (all scores collapse to the grand mean):
+   *  a column of 60 equal numbers says nothing, so it is only shown when the values differ (audit P-09 / HANDOFF 4A.2). */
+  function scoreVaries(all) {
+    var first = null, seen = 0;
+    for (var i = 0; i < all.length; i++) {
+      var v = num(all[i].score_shrunk);
+      if (v === null) continue;
+      if (seen === 0) first = v; else if (Math.abs(v - first) > 1e-9) return true;
+      seen++;
+    }
+    return false;
+  }
+
   function allCard(data, hz, unlocked) {
     var all = recs(data.all);
     var filter = 'all';
@@ -336,12 +349,12 @@
         tip: '預期對數報酬 ÷ 預期對數波動度（相對強度，排名依據）。它偏向低波動個股，不是選股能力的證明。' },
       { key: 'sigma', label: '波動 σ', num: true, sortable: true, render: function (r) { return num(r.sigma) === null ? NA : F.fmtPct(r.sigma, 2); },
         tip: '模型預測這段期間報酬的標準差。' },
-      { key: 'score_shrunk', label: '成本後分數', num: true, sortable: true, render: function (r) { return num(r.score_shrunk) === null ? NA : F.fmtNum(r.score_shrunk, 2); },
-        tip: '（預期報酬 − 交易成本）÷ 波動度，經經驗貝氏收縮後的分數。只用來把關偏多候選／偏空與計算配置權重，不用於排名（它偏向高波動個股）。' },
+      scoreVaries(all) ? { key: 'score_shrunk', label: '成本後分數', num: true, sortable: true, render: function (r) { return num(r.score_shrunk) === null ? NA : F.fmtNum(r.score_shrunk, 2); },
+        tip: '（預期報酬 − 交易成本）÷ 波動度，經經驗貝氏收縮後的分數。只用來把關偏多候選／偏空與計算配置權重，不用於排名（它偏向高波動個股）。' } : null,
       { key: 'weight', label: '模型配置權重', num: true, sortable: true, render: function (r) { var w = num(r.weight); return w === null || w <= 0 ? NA : F.fmtPct(w, 1); } },
       { key: 'confidence', label: '模型一致度', sortable: true, value: function (r) { return { '高': 0, '中': 1, '低': 2 }[r.confidence]; }, render: function (r) { return r.confidence || NA; } },
       { key: 'signal', label: '訊號', sortable: true, value: function (r) { return SIG_ORDER[r.signal]; }, render: function (r) { return sigChip(r.signal, unlocked) || NA; } }
-    ];
+    ].filter(Boolean);
     function filtered() {
       return filter === 'all' ? all : all.filter(function (r) { return r.signal === filter; });
     }
@@ -469,9 +482,17 @@
         a11y: '累積淨值曲線圖：相對強度前 ' + topK + ' 名、等權重全體' + (arr(curve.top_sigma).length ? '、無預測的波動度對照' : '') + (arr(curve.taiex).length ? '與加權指數' : '') + '，起點皆為 1。',
         panels: [{ title: '累積淨值（起點 = 1；模型精選組合已扣成本）', series: series, fmt: function (v) { return F.fmtNum(v, 2); }, refLines: [{ v: 1, label: '起點' }], ticks: 5 }]
       };
-    }, { kind: 'timeSeries', sub: '滑鼠移到圖上可查看各日數值；縱軸為倍數（2 = 資產翻倍）', heightFn: function (w) { return w < 480 ? 260 : 340; } });
+    }, { kind: 'timeSeries', sub: '滑鼠移到圖上可查看各日數值；縱軸為倍數（2 = 資產翻倍）' + equityReminder(rep), heightFn: function (w) { return w < 480 ? 260 : 340; } });
     sc.add(card);
     return card;
+  }
+
+  /** The exposure reminder printed right under the equity curve (audit P-05): curve differences are mostly volatility / beta differences. */
+  function equityReminder(rep) {
+    var b = obj(rep.basket), r = num(b.sigma_ratio), beta = num(b.mean_beta), ub = num(b.universe_mean_beta);
+    if (r === null && beta === null) return '';
+    return '。提醒：精選股的波動度' + (r === null ? '' : '為全體的 ' + F.fmtNum(r, 2) + ' 倍') + (beta === null || ub === null ? '' : '、市場 β ' + F.fmtNum(beta, 2) + '（全體 ' + F.fmtNum(ub, 2) + '）') +
+      '，曲線的差異可能只是曝險不同，不一定是選股能力';
   }
 
   function icCard(rep, sc) {
@@ -565,6 +586,7 @@
       TQ.clear(content);
       content.appendChild(h('p', { class: 'uv-intro' },
         '每天依本頁相同的規則（預測期間：' + hz.long + '）挑出「相對強度」最高的前 5 名等權重持有，扣除交易成本，與「全體等權重」、「只挑預測波動度最高者」的無預測對照及加權指數比較，並檢定排序能力（IC）與命中率是否顯著。'));
+      content.appendChild(h('p', { class: 'uv-scope' }, '驗證的是「相對強度排序」本身：全體 60 檔都參與排名，只取前 5 名檢驗（本頁列出前 10 名）；不套用「偏多候選」的上漲機率與成本門檻，所以它不是在驗證本頁嚴格條件的偏多候選名單。'));
       content.appendChild(h('p', { class: 'muted' }, '首次計算需要對全部股票逐一做前推式預測，可能需要數分鐘；完成後會快取。'));
       content.appendChild(h('button', { type: 'button', class: 'btn btn-primary', onClick: run }, '開始驗證（' + hz.label + '）'));
     }

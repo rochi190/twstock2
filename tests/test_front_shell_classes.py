@@ -18,6 +18,9 @@ HOOK_ONLY = {
     "w-key", "pick-up", "pick-down", "hbar-accent", "kpi-neutral", "bt-col", "sh-asof",
     # 歷史驗證 view (module D3): structural hooks without a rule of their own (its full class audit is in test_front_qa_static.py)
     "view-backtest", "slot-form", "bt-form-card", "bt-f-h", "bt-f-thr", "bt-f-disc", "bt-f-years", "bt-cur-name", "bt-reset",
+    # 今日模型觀察 (picks) after the evidence / relative-strength rewrite: structural containers and column hooks; the visible parts have rules
+    # (.ev-body, .lead-grid, .lead-item ...).  `bt-open` is the stock page's link button (styled through .btn / .btn-primary).
+    "ev-host", "ev-run", "ev-open", "lead-card", "lead-leaders", "lead-laggards", "slot-lists", "bt-open",
 }
 
 

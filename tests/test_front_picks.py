@@ -1,4 +1,4 @@
-"""今日推薦 view (#/picks): horizon control, progress, candidates / avoids / full table, portfolio, universe-validation panel."""
+"""今日模型觀察 view (#/picks): horizon control, progress, candidates / avoids / full table, portfolio, universe-validation panel."""
 from __future__ import annotations
 
 import json
@@ -34,17 +34,50 @@ class RealOneWeek(unittest.TestCase):
     def test_clean(self):
         assert_clean(self, self.app)
         self.assertEqual(audit(self.app)["h1"], 1)
-        self.assertEqual(self.app.eval("document.title"), "今日推薦 · 台股量化實驗室")
+        self.assertEqual(self.app.eval("document.title"), "今日模型觀察 · 台股量化實驗室")
 
     def test_banner_market_strip_and_empty_buys(self):
         t = self.text
-        for needle in ("資料截至 2026-10-22 (週四) 收盤", "非即時報價", "本次掃描 60 / 60 檔", "2026-10-22 22:03", "目前市場已收盤",
-                       "加權指數", "46,041", "▼ −1.81%", "52.2%", "53.1%", "高波動震盪",
-                       "買進候選", "目前沒有同時符合買進條件的標的", "沒有訊號本身就是模型的答案",
-                       "建議組合", "持股檔數", "全數持有現金", "建議避開", "目前沒有明確偏空"):
+        # Rewritten for the fixed backend (HANDOFF 4A): the real h = 5 payload is dated 2026-10-30, ranked by rank_signal, carries a real
+        # `evidence` block (no_edge, the basket loses to the universe after costs) and an all-cash portfolio with suppressed_reason B0.
+        for needle in ("資料截至 2026-10-30 (週五) 收盤", "非即時報價", "本次掃描 60 / 60 檔", "2026-10-30 21:08", "目前市場已收盤",
+                       "加權指數", "45,212", "▼ −2.49%", "51.9%", "52.8%", "高波動震盪",
+                       "偏多候選（嚴格條件）", "目前沒有同時符合偏多候選條件的標的", "沒有訊號本身就是模型的答案",
+                       "模型配置範例", "持股檔數", "全數持有現金", "為什麼沒有權重", "偏空／避開（嚴格條件）", "目前沒有明確偏空"):
             self.assertIn(needle, t)
         self.assertEqual(self.app.count(".pick-card"), 0)
-        self.assertEqual(self.app.count(".banner"), 2)
+        # data-asof banner + market-closed banner + the evidence banner (all three are .banner)
+        self.assertEqual(self.app.count(".banner"), 3)
+
+    def test_evidence_banner_is_amber_and_never_says_buy(self):
+        """DESIGN 9.4 / audit P-10: with no_edge (and a basket that loses to the universe after costs) the page must not read as advice."""
+        t = self.text
+        self.assertIn("沒有統計上顯著的預測力", t)
+        self.assertIn("IC +0.006，p=0.66", t)
+        self.assertIn("扣成本後前 5 名組合年化 9.7%", t)
+        self.assertEqual(self.app.count(".ev-host .banner-warn"), 1)
+        self.assertEqual(self.app.count(".ev-host .ev-open"), 1)
+        for forbidden in ("建議買進", "偏多·買進", "買進候選"):
+            self.assertNotIn(forbidden, t)
+
+    def test_relative_strength_lists_show_sigma_and_low_vol_and_cost_marks(self):
+        t = self.app.text(".lead-card")
+        for needle in ("今日相對強度排名", "相對偏多 Top 10", "相對最弱（上漲機率仍高於 50%）", "不代表看空", "波動 σ", "低波動", "未覆蓋成本",
+                       "相對強度 +0.088", "Spearman 相關為 −0.50"):
+            self.assertIn(needle, t)
+        self.assertEqual(self.app.count(".lead-leaders .lead-item"), 10)
+        self.assertEqual(self.app.count(".lead-laggards .lead-item"), 10)
+        self.assertEqual(self.app.json("document.querySelector('.lead-leaders .lead-item').querySelectorAll('.chip').length"), 3)   # 相對偏多 + 低波動 + 未覆蓋成本
+        # every leader / laggard row carries its sigma
+        self.assertEqual(self.app.json("[].slice.call(document.querySelectorAll('.lead-item')).every(function (e) { return e.textContent.indexOf('波動 σ') >= 0; })"), True)
+        self.assertNotIn("相對偏空 Top", t)         # all laggards have p_up > 0.5: the heading must not claim a bearish view
+
+    def test_constant_cost_score_column_is_hidden_when_shrinkage_collapses_it(self):
+        """B = 0 makes score_shrunk identical for all 60 names: a column of one number is noise (HANDOFF 4A.2)."""
+        head = self.app.text(".all-card thead")
+        self.assertNotIn("成本後分數", head)
+        for needle in ("相對強度", "波動 σ", "淨預期報酬", "模型一致度"):
+            self.assertIn(needle, head)
 
     def test_horizon_control_defaults_to_one_week(self):
         self.assertEqual(self.app.attr(".page-head .seg", "role"), "radiogroup")
@@ -57,16 +90,18 @@ class RealOneWeek(unittest.TestCase):
         app = picks(2000)
         self.assertEqual(app.json("document.querySelectorAll('.all-card tbody tr').length"), 60)
         first = app.json("document.querySelector('.all-card tbody tr').textContent")
-        self.assertIn("南亞", first)
-        self.assertIn("▼ −6.08%", first)
+        self.assertIn("台積電", first)               # rank 1 by rank_signal (+0.088)
+        self.assertIn("▼ −1.86%", first)
+        self.assertIn("+0.088", first)
         # sort by 1-day change: the first click on a numeric column sorts descending (largest first)
         app.click(".all-card thead .th-btn", 3)
         self.assertEqual(app.json("document.querySelectorAll('.all-card thead th')[3].getAttribute('aria-sort')"), "descending")
         top = app.json("document.querySelector('.all-card tbody tr').textContent")
-        self.assertIn("▲ +4.29%", top)             # 台泥 is the biggest gainer of the day
+        self.assertIn("長榮", top)
+        self.assertIn("▲ +4.02%", top)             # 長榮 is the biggest gainer of the day
         app.click(".all-card thead .th-btn", 3)
         self.assertEqual(app.json("document.querySelectorAll('.all-card thead th')[3].getAttribute('aria-sort')"), "ascending")
-        self.assertIn("▼ −7.12%", app.json("document.querySelector('.all-card tbody tr').textContent"))
+        self.assertIn("▼ −9.80%", app.json("document.querySelector('.all-card tbody tr').textContent"))
         # names link to the stock page
         self.assertEqual(app.json("document.querySelector('.all-card tbody a').getAttribute('href')").startswith("#/stock/"), True)
         assert_clean(self, app)
@@ -98,17 +133,25 @@ class HorizonSwitching(unittest.TestCase):
         self.assertEqual(json.loads(app.eval("window.__ls['tq.picksH']")), 20)
         self.assertEqual(app.count(".pick-card"), 10)
         card = app.text(".pick-card")
-        for needle in ("南亞", "1303", "301.0", "▼ −6.08%", "P(漲)", "55.1%", "淨預期報酬", "▲ +4.10%", "建議權重", "5.6%", "信心 低",
-                       "偏多·買進", "12-1個月動能", "未來 20 個交易日"):
+        # Rewritten for the fixed backend: the real h = 20 payload ranks 中華電 first (rank_signal +0.173), has 27 names passing the strict
+        # screen (10 shown), no validation yet (evidence.source = none) and an all-cash portfolio (B = 0, so every weight is 0).
+        for needle in ("中華電", "2412", "160.0", "▲ +1.27%", "上漲機率", "57.8%", "淨預期報酬", "▲ +0.12%", "模型配置權重", "模型一致度 低",
+                       "相對強度 +0.173", "預測波動 σ 3.63%", "低波動", "偏多候選", "均線多空", "未來 20 個交易日", "共 27 檔符合"):
             self.assertIn(needle, card + app.text(".buys-card"))
-        self.assertEqual(app.attr(".pick-card .stock-link", "href"), "#/stock/1303")
+        self.assertEqual(app.attr(".pick-card .stock-link", "href"), "#/stock/2412")
         t = app.text("#view")
-        for needle in ("持股檔數", "7 檔", "股票部位", "62%", "現金比例", "38%", "依 0.25 倍凱利"):
+        for needle in ("持股檔數", "0 檔", "股票部位", "0%", "現金比例", "100%", "為什麼沒有權重", "全數持有現金", "尚未取得「一個月」的歷史驗證"):
             self.assertIn(needle, t)
         self.assertEqual(app.count(".pick-card.pick-up"), 10)           # bullish cards are marked (red top border), not by colour alone: they carry the 偏多 chip
         self.assertEqual(app.count(".pick-card .chip-up"), 10)
-        # full table carries the same names, buys ranked first among those with weight
-        self.assertIn("5.6%", app.json("document.querySelector('.all-card tbody tr').textContent"))
+        # no validation => the advice wording stays locked, everywhere (cards, table, chips)
+        for forbidden in ("建議買進", "偏多·買進"):
+            self.assertNotIn(forbidden, t)
+        self.assertEqual(app.count(".ev-host .banner-neutral"), 1)
+        self.assertEqual(app.count(".ev-host .ev-run"), 1)
+        # the portfolio is empty: no weight table, and no row of the full table carries a weight
+        self.assertEqual(app.count(".pf-card .stacked-bar"), 0)
+        self.assertEqual(app.json("document.querySelector('.all-card tbody tr').textContent").count("%"), 4)       # 1日, 上漲機率, 淨預期, σ -- no weight
 
     def test_persisted_horizon_is_used_on_load(self):
         app = picks(2000, storage={"tq.picksH": "1"})
@@ -129,7 +172,7 @@ class HorizonSwitching(unittest.TestCase):
     def test_switch_while_computing_aborts_the_old_poll(self):
         slow = COMPUTING(10, 122, "預測 10/60：2330 台積電")
         app = picks(1000, extra=[{"re": r"^/api/recommendations\?h=5&", "resp": slow}])
-        self.assertIn("正在計算今日推薦", app.text("#view"))
+        self.assertIn("正在計算今日模型觀察", app.text("#view"))
         self.assertIn("預測 10/60：2330 台積電", app.text("#view"))
         self.assertEqual(app.attr(".progress-card .progress", "aria-valuenow"), "8")
         n5 = len([x for x in rec_fetches(app) if "h=5" in x])
@@ -192,7 +235,7 @@ class StatesAndVariants(unittest.TestCase):
             a = rec["avoids"][0]
             avoid = app.text(".avoid-item")
             self.assertIn(a["name"], avoid)
-            self.assertIn("偏空·避開", avoid)
+            self.assertIn("偏空／避開", avoid)
             self.assertEqual(app.count(".avoid-item .chip-down"), len(rec["avoids"]))       # avoid = green chip with ▼ + text
         self.assertEqual(app.json("document.querySelectorAll('.all-card tbody tr').length"), len(rec["all"]))
 
@@ -200,7 +243,7 @@ class StatesAndVariants(unittest.TestCase):
         app = picks(2000, extra=[{"re": r"^/api/recommendations\?h=5&", "resp": OK(fixture("recommendations_empty.json"))}])
         assert_clean(self, app)
         self.assertIn("沒有符合條件的標的", app.text(".all-card"))
-        self.assertIn("今日沒有符合條件的買進候選", app.text(".pf-card"))
+        self.assertIn("今日沒有符合條件的偏多候選", app.text(".pf-card"))
         bare = {"status": "ready"}
         app = picks(2000, extra=[{"re": r"^/api/recommendations\?h=5&", "resp": OK(bare)}])
         assert_clean(self, app)
@@ -259,6 +302,8 @@ class UniversePanel(unittest.TestCase):
         self.assertEqual(app.attr(".uv-card .collapse-btn", "aria-expanded"), "true")
         self.assertFalse(app.eval("document.querySelector('.uv-card .collapse-body').hidden"))
         self.assertIn("開始驗證（一週）", app.text(".uv-card"))
+        for needle in ("前 5 名", "本頁列出前 10 名", "不套用「偏多候選」", "相對強度"):       # the real rule, spelled out before the run (HANDOFF 4A.3)
+            self.assertIn(needle, app.text(".uv-card"))
         self.assertEqual([x for x in app.fetched() if "universe" in x], [])           # opening is not enough: heavy job needs the button
         app.click(".uv-card .collapse-btn")
         self.assertTrue(app.eval("document.querySelector('.uv-card .collapse-body').hidden"))
@@ -277,11 +322,19 @@ class UniversePanel(unittest.TestCase):
         app.settle(3000)
         assert_clean(self, app)
         t = app.text(".uv-card")
-        for needle in ("沒有統計上顯著的選股優勢", "無預測優勢", "排序能力 IC", "+0.017", "IR 0.05", "t 0.92", "p 0.37", "精選股上漲比例", "53.5%",
-                       "p 0.52", "前段 − 後段報酬差", "+1.10%", "驗證期間", "2021-08-27 ~ 2026-10-22", "1,249 個交易日", "60 檔",
-                       "推薦組合（前 5 名）", "等權重全體", "加權指數", "累積報酬", "夏普比率", "最大回撤", "年換手率", "19.4 倍",
+        # real fixture backtest_universe_h5.json (fixed backend, 2026-10-30): no_edge, the top-5 basket is calmer than the universe and
+        # loses to the volatility-only control.
+        for needle in ("沒有統計上顯著的選股優勢", "無預測優勢", "排序能力 IC", "+0.006", "IR 0.02", "t 0.44", "p 0.66", "精選股上漲比例", "56.5%",
+                       "p 0.008", "前段 − 後段報酬差", "−0.14%", "驗證期間", "2021-09-03 ~ 2026-10-30", "1,249 個交易日", "60 檔",
+                       "模型精選：每日相對強度最高的前 5 名", "全體等權重（不扣成本）", "加權指數", "累積報酬", "夏普比率", "最大回撤", "年換手率", "26.2 倍",
                        "累積淨值曲線", "各檔個股的準確率", "存活者偏差"):
             self.assertIn(needle, t)
+        # exposure comparison (P-05): the volatility / beta reminder is OUTSIDE the collapsed <details>, next to the numbers
+        for needle in ("曝險對照", "精選股平均波動 σ", "0.54 倍", "精選股平均市場 β", "無預測對照", "沒有勝過這個不使用任何預測的波動度排序"):
+            self.assertIn(needle, t)
+        self.assertIn("曲線的差異可能只是曝險不同", app.text(".uv-card .chart-card"))           # P-05: reminder tight to the equity curve
+        self.assertEqual(app.json("document.querySelectorAll('.uv-card .uv-block').length >= 2"), True)
+        self.assertEqual(app.json("document.querySelector('.uv-card details .uv-block')"), None)
         self.assertEqual(app.json("document.querySelectorAll('.uv-card .verdict').length"), 1)
         # equity-curve chart is mounted, drawn and summarised
         self.assertGreaterEqual(app.json("TQ.charts.mountedCount()"), 2)
@@ -289,7 +342,8 @@ class UniversePanel(unittest.TestCase):
         self.assertIn("累積淨值曲線圖", label)
         self.assertGreater(app.json("document.querySelector('.uv-card canvas').getContext('2d').ops.length"), 50)
         legend = app.text(".uv-card .chart-legend")
-        self.assertIn("推薦組合（前 5 名）", legend)
+        self.assertIn("模型精選：每日相對強度最高的前 5 名", legend)
+        self.assertIn("無預測對照：每日預測波動度最高的前 5 名", legend)
         self.assertIn("加權指數", legend)
         # per-stock table is sortable and linked
         self.assertEqual(app.json("document.querySelector('.uv-card details table tbody a').getAttribute('href')").startswith("#/stock/"), True)

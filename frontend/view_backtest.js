@@ -130,6 +130,15 @@
       : ui.chip('不顯著', 'neutral', { title: (what || '') + ' p=' + F.fmtP(v) + ' ≥ 0.05：結果可能只是運氣' });
   }
 
+  /** IC significance chip (audit S-02): the p-value is two-sided, so "significant" would also be shown for a significantly NEGATIVE
+   *  ranking.  Only a positive IC can carry the chip; zero or negative gets an explicit "no positive information" chip. */
+  function icChip(ic, p) {
+    var v = num(ic);
+    if (v === null) return null;
+    if (v <= 0) return ui.chip('無正向排序資訊', 'neutral', { title: 'IC ≤ 0：預期報酬較高的預測，實際報酬並沒有比較高；不論 p 值多小都不代表模型有排序能力。' });
+    return sigChip(p, 'IC');
+  }
+
   // ---- result header ----------------------------------------------------------------------------------------------
   function resultHeader(js, rep, p, code, actions) {
     var per = obj(rep.period), info = F.verdictInfo(obj(rep.verdict).level);
@@ -197,7 +206,7 @@
           line('校準誤差 ECE ' + F.fmtPct(pr.ece, 1) + (num(pr.ece_noise_floor) === null ? '' : '（雜訊底限約 ' + F.fmtPct(pr.ece_noise_floor, 0) + '）'))],
         { tip: 'Brier 分數＝「預測上漲機率」與實際結果（漲＝1、跌＝0）的平均平方誤差，越小越好。技能分數＝1 − 模型 Brier ÷ 基準 Brier。基準是「因果氣候基準」：每個預測日只用當時已知的歷史上漲比例（下方的「對事後基準」則用整段驗證期的上漲比例，是當時不可能知道的最嚴格標準）。大於 0 才代表機率預測有加分；接近 0 或為負代表機率沒有提供額外資訊。ECE 是預測機率與實際頻率的平均落差，越小代表機率越誠實；即使是完全校準的預測，分箱的雜訊也會讓 ECE 不為 0（「雜訊底限」，預測期間越長越高），低於底限的 ECE 不能解讀為不準。' + (pr.p_up_event === 'up_given_move' ? '平盤（收盤價不變）不是漲也不是跌，不計入機率評分。' : '') }),
       ui.kpi('預測排序相關 IC', num(rt.ic) === null ? NA : F.fmtSigned(rt.ic, 3),
-        [line('雙尾 p = ' + F.fmtP(rt.ic_pvalue)), chipLine(sigChip(rt.ic_pvalue, 'IC'))],
+        [line('雙尾 p = ' + F.fmtP(rt.ic_pvalue)), chipLine(icChip(rt.ic, rt.ic_pvalue))],
         { tip: '資訊係數（Spearman 等級相關）：模型預測的「預期報酬高低」與實際報酬高低的排序有多一致。+1 完全一致、0 毫無關係、−1 完全相反。個股實務上 0.02–0.05 已算不錯，但一定要搭配 p 值：樣本夠大時，微小的相關也會顯著，樣本小時，偶然的相關可能看起來很高。' }));
 
     var accuracy = num(d.accuracy);
@@ -225,6 +234,8 @@
         h('h3', { class: 'sub-title' }, '方向準確率 vs 簡單基準', ui.infoTip('「基準」是完全不用模型、也不看未來的簡單做法：永遠猜漲、沿用前一期漲跌方向、猜訓練期較常出現的方向。模型要有價值，就必須在樣本外穩定勝過它們。')),
         baseTable,
         h('p', { class: 'bt-note' }, hcText),
+        pr.p_up_event === 'up_given_move' ? h('p', { class: 'bt-note' },
+          '機率評分的事件是「收盤上漲，且排除收盤價不變（平盤）的日子」，所以' + (num(pr.n) === null ? '' : '評分樣本 ' + F.fmtInt(pr.n) + ' 次，') + '平盤不計入。上漲機率是「在收盤價有變動的前提下」的機率。') : null,
         n !== null && n < 250 ? h('p', { class: 'bt-note bt-warn' }, '評分樣本只有 ' + F.fmtInt(n) + ' 次，統計檢定的力量很低，數字僅供參考。') : null)
     ], { class: 'bt-quality-card', sub: '機率有沒有道理？排序有沒有資訊？所有數字都是「樣本外」——模型預測當下完全沒看過答案。' });
   }

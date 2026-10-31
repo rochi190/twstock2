@@ -700,7 +700,7 @@
     ctx.stroke();
     dot(ctx, cx + rad * Math.cos(a), cy + rad * Math.sin(a), 5, color, pal.bg);
     return {
-      W: W, H: H, cx: cx, cy: cy, r: rad, angle: a, legend: [], count: 0, a11y: '上漲機率 ' + F.fmtPct(p, 1) + '，下跌機率 ' + F.fmtPct(1 - p, 1),
+      W: W, H: H, cx: cx, cy: cy, r: rad, angle: a, legend: [], count: 0, a11y: '上漲機率 ' + F.fmtPct(p, 1) + '（模型估計；平盤不計入）',
       tooltip: function () { return null; }, idxAtX: function () { return -1; }, xOf: function () { return NaN; }
     };
   }

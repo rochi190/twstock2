@@ -115,7 +115,10 @@ class DrawFunctions(unittest.TestCase):
             self.assertSane(r)
         r = self.draw("g", "drawGauge", 200, 112, "light", "{ p: 0.516, lo: 0.3, hi: 0.7 }")
         self.assertIn("51.6%", r["a11y"])
-        self.assertIn("48.4%", r["a11y"])
+        # Changed on purpose (HANDOFF 4A.4): p_up is P(R>0 | R != 0), so 1 - p_up is NOT the probability of a fall (flat days are excluded).
+        self.assertNotIn("48.4%", r["a11y"])
+        self.assertNotIn("下跌機率", r["a11y"])
+        self.assertIn("平盤不計入", r["a11y"])
         self.assertIn("無資料", self.draw("g", "drawGauge", 200, 112, "light", "{ p: null }")["a11y"])
         for W, H in ((60, 40), (30, 30), (0, 0), (200, 20)):
             self.assertEqual(self.draw("g", "drawGauge", W, H, "light", "{ p: 0.6 }")["report"]["bad"], [])

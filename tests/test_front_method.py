@@ -195,7 +195,7 @@ class PageContent(Base):
 
     def test_pipeline_flow_has_eight_steps(self):
         self.assertEqual(self.app.count(".m-flow-step"), 8)
-        self.assertEqual(self.app.texts(".m-flow-title"), ["資料", "特徵", "四個模型", "動態模型平均", "機率校準", "漲跌停截斷", "輸出", "檢驗與推薦"])
+        self.assertEqual(self.app.texts(".m-flow-title"), ["資料", "特徵", "四個模型", "動態模型平均", "機率校準", "漲跌停截斷", "輸出", "檢驗與模型觀察"])
 
     def test_feature_table_lists_all_fourteen_causal_features(self):
         rows = self.app.texts("#m-dlm table tbody tr")

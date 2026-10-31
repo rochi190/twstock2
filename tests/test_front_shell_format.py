@@ -123,7 +123,15 @@ class Format(unittest.TestCase):
     def test_semantics(self):
         self.assertEqual([self.f("dirOf", 1), self.f("dirOf", -1), self.f("dirOf", 0), self.f("dirOf", None), self.f("dirOf", 0.001, 0.01)], ["up", "down", "flat", "na", "flat"])
         self.assertEqual([self.f("arrow", "up"), self.f("arrow", "down"), self.f("arrow", "flat"), self.f("arrow", "na")], ["▲", "▼", "▬", ""])
-        self.assertEqual(self.f("signalInfo", "buy"), {"label": "偏多·買進", "short": "買進", "dir": "up", "icon": "▲"})
+        # Changed on purpose (HANDOFF 2.8 / audit P-10): the default buy label is the statistical screen 偏多候選; the advice wording 偏多·買進
+        # appears only when the caller passes unlocked === true (evidence >= moderate_edge and the basket not losing to the universe after costs).
+        self.assertEqual(self.f("signalInfo", "buy"), {"label": "偏多候選", "short": "偏多", "dir": "up", "icon": "▲"})
+        self.assertEqual(self.f("signalInfo", "buy", False)["label"], "偏多候選")
+        self.assertEqual(self.f("signalInfo", "buy", "yes")["label"], "偏多候選")             # only the boolean true unlocks
+        self.assertEqual(self.f("signalInfo", "buy", True), {"label": "偏多·買進", "short": "買進", "dir": "up", "icon": "▲"})
+        self.assertEqual(self.f("signalInfo", "hold", True)["label"], "中性觀望")                 # nothing else changes with the gate
+        self.assertEqual(self.f("signalInfo", "avoid", True)["label"], "偏空／避開")
+        self.assertEqual([self.f("levelUnlocksBuy", x) for x in ("no_edge", "weak_edge", "moderate_edge", "strong_edge", None)], [False, False, True, True, False])
         self.assertEqual(self.f("signalInfo", "avoid")["dir"], "down")
         self.assertEqual(self.f("signalInfo", "hold")["dir"], "flat")
         self.assertEqual(self.f("signalInfo", "zzz"), {"label": NA, "short": NA, "dir": "na", "icon": ""})

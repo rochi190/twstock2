@@ -294,6 +294,41 @@ class RealResultOneWeekAndTradingStrategy(Base):
 
 
 @unittest.skipUnless(HAVE_RACER, SKIP_MSG)
+class RealResultTwentyDayFixedBackend(Base):
+    """Real h = 20 payload of the fixed backend: causal + oracle baselines, ECE noise floor, p_up_event = up_given_move, a NEGATIVE IC."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = bt("#/backtest/2330?h=20", 3000)
+        cls.text = cls.app.text("#view")
+
+    def test_clean(self):
+        assert_clean(self, self.app)
+
+    def test_brier_card_shows_causal_baseline_oracle_baseline_and_ece_noise_floor(self):
+        brier = self.app.texts(".bt-quality-card .kpi")[1]
+        for needle in ("Brier 技能分數", "−1.61%", "對事後基準 −2.75%", "ECE 9.5%", "雜訊底限約 20%"):
+            self.has(brier, needle)
+        tip = self.app.texts(".bt-quality-card .kpi .itip-pop")[1]
+        self.assertIn("因果氣候基準", tip)
+
+    def test_negative_ic_never_gets_a_significance_chip(self):
+        """S-02: the p-value is two-sided; a (significantly) negative IC must not read as ranking skill."""
+        ic = self.app.texts(".bt-quality-card .kpi")[2]
+        self.has(ic, "−0.073")
+        self.has(ic, "無正向排序資訊")
+        self.assertNotIn("單項檢定顯著", ic)
+
+    def test_sample_note_follows_p_up_event(self):
+        self.has(self.text, "排除收盤價不變（平盤）的日子")
+        self.has(self.text, "評分樣本 1,219 次")
+
+    def test_legacy_payload_without_p_up_event_has_no_flat_day_note(self):
+        app = bt("#/backtest/2330?h=1", 3000)
+        self.assertNotIn("排除收盤價不變（平盤）的日子", app.text("#view"))
+
+
+@unittest.skipUnless(HAVE_RACER, SKIP_MSG)
 class NullsAndPartialPayloads(Base):
     def check(self, body, settle=3000, expect=None):
         app = bt("#/backtest/2330?h=1", settle, extra=[{"re": BT_RE, "resp": OK(body)}], real=False)

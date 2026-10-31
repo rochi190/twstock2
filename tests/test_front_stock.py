@@ -48,19 +48,29 @@ class FullPayload(unittest.TestCase):
                        "模型估計 5 個交易日後收盤高於今日的機率", "模型估計 20 個交易日後收盤高於今日的機率"):
             self.assertIn(needle, t)
         self.assertEqual(self.app.count(".hz-card"), 3)
-        self.assertEqual(self.app.texts(".hz-card .gauge-val"), ["上漲機率 51.6%", "上漲機率 54.7%", "上漲機率 58.4%"])
-        # signal chips: neutral, neutral, bullish (red up-chip), with text AND glyph
+        # Changed on purpose (audit P-08 / HANDOFF 4A.4): the gauge number is rounded to a whole percent -- the calibration error is several points,
+        # so a decimal overstates the precision; the exact model output stays in the tooltip and in the per-model table below (51.6% ...).
+        self.assertEqual(self.app.texts(".hz-card .gauge-val"), ["上漲機率 52%", "上漲機率 55%", "上漲機率 58%"])
+        self.assertEqual(self.app.json("Array.prototype.map.call(document.querySelectorAll('.hz-card .gauge-val'), function (e) { return e.getAttribute('title'); })"),
+                         ["模型輸出 51.6%。歷史驗證的校準誤差通常有數個百分點，所以不宜讀到小數點。",
+                          "模型輸出 54.7%。歷史驗證的校準誤差通常有數個百分點，所以不宜讀到小數點。",
+                          "模型輸出 58.4%。歷史驗證的校準誤差通常有數個百分點，所以不宜讀到小數點。"])
+        # signal chips (text AND glyph): neutral, neutral, and a bullish 20-day signal whose validation found NO edge -> muted 偏多（未達顯著）,
+        # never the red 偏多·買進; the confidence chip is 模型一致度 (an internal agreement score, not a measured confidence)
         chips = self.app.texts(".hz-card .hz-chips .chip")
-        self.assertEqual(chips, ["◆中性·觀望", "信心 低", "◆中性·觀望", "信心 低", "▲偏多·買進", "信心 中"])      # signal chip + confidence chip
-        self.assertEqual(self.app.count(".hz-card .hz-chips .chip-up"), 1)
-        # a neutral signal must not paint the probability red or green
-        self.assertEqual(self.app.attr(".hz-card .gauge-val", "class"), "gauge-val flat")
+        self.assertEqual(chips, ["◆中性觀望", "模型一致度 低", "◆中性觀望", "模型一致度 低", "▲偏多（未達顯著）", "模型一致度 中"])
+        self.assertEqual(self.app.count(".hz-card .hz-chips .chip-up"), 0)
+        self.assertEqual(self.app.count(".hz-card .hz-chips .chip-muted"), 1)
+        self.assertNotIn("信心", " ".join(chips))
+        self.assertNotIn("買進", " ".join(chips))
+        # an unsupported signal must not paint the probability or the card red / green
         self.assertEqual(self.app.json("Array.prototype.map.call(document.querySelectorAll('.hz-card .gauge-val'), function (e) { return e.className; })"),
-                         ["gauge-val flat", "gauge-val flat", "gauge-val up"])
+                         ["gauge-val flat", "gauge-val flat", "gauge-val flat"])
+        self.assertEqual(self.app.count(".hz-card.hz-up"), 0)
 
     def test_intervals_returns_components_confidence(self):
         t = self.text
-        for needle in ("90% 區間", "50% 區間", "中位數", "2,324 ~ 2,452", "−2.6% ~ +2.8%", "+0.10%", "−0.47%", "1.66%", "信心 低",
+        for needle in ("90% 區間", "50% 區間", "中位數", "2,324 ~ 2,452", "−2.6% ~ +2.8%", "+0.10%", "−0.47%", "1.66%", "模型一致度 低",
                        "GJR-GARCH-t", "隱馬可夫regime", "動態線性模型(貝氏)", "隨機漫步基準", "綜合（已校準）", "51.7%"):
             self.assertIn(needle, t)
 
@@ -87,14 +97,14 @@ class FullPayload(unittest.TestCase):
     def test_backtest_summary_loaded_lazily_after_forecast_and_sequentially(self):
         f = self.app.fetched()
         self.assertEqual(f[:2], ["/api/history?symbol=2330&limit=250", "/api/forecast?symbol=2330"])
-        self.assertEqual([x for x in f if "backtest" in x], ["/api/backtest?symbol=2330&h=1", "/api/backtest?symbol=2330&h=5"])
+        # h = 20 has its own validation card too (audit P-08): the 20-day signal chip needs the verdict of ITS horizon
+        self.assertEqual([x for x in f if "backtest" in x], ["/api/backtest?symbol=2330&h=1", "/api/backtest?symbol=2330&h=5", "/api/backtest?symbol=2330&h=20"])
         t = self.text
         for needle in ("歷史驗證摘要", "沒有統計上顯著的預測優勢", "方向準確率", "52.0%", "[49.1%, 54.8%]", "最佳基準：永遠看漲", "對最佳基準的 p 值", "0.51",
                        "Brier 技能分數", "−0.17%", "1,164 次", "無預測優勢", "54.0%", "[47.6%, 60.0%]", "0.61"):
             self.assertIn(needle, t)
         hrefs = self.app.json("Array.prototype.map.call(document.querySelectorAll('.bt-card a'), function (a) { return a.getAttribute('href'); })")
-        self.assertIn("#/backtest/2330", hrefs)
-        self.assertEqual(set(hrefs), {"#/backtest/2330", "#/backtest/2330?h=1", "#/backtest/2330?h=5"})      # each column opens the full validation of ITS horizon
+        self.assertEqual(set(hrefs), {"#/backtest/2330?h=1", "#/backtest/2330?h=5", "#/backtest/2330?h=20"})      # each column opens the full validation of ITS horizon
 
     def test_notes_and_disclaimer(self):
         self.assertIn("注意事項與免責聲明", self.text)
@@ -190,7 +200,8 @@ class PartialPayloads(unittest.TestCase):
         t = app.text("#view")
         self.assertIn("測試", t)
         self.assertIn("12.34", t)
-        self.assertIn("上漲機率 50.0%", t)                  # the only number in the payload
+        self.assertIn("上漲機率 50%", t)                    # the only number in the payload: whole percent on the gauge ...
+        self.assertIn("綜合（已校準）50.0%", t)             # ... one decimal in the per-model table
         self.assertIn("沒有市場狀態資料", t)
         self.assertIn("沒有因子資料", t)
 

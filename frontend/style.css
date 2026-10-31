@@ -523,6 +523,7 @@ button { height: auto; overflow: visible; }      /* a button never clips its lab
 .uv-inner, .uv-content, .uv-result { min-width: 0; }
 .uv-content > * + *, .uv-result > * + * { margin-top: 16px; }
 .uv-intro { margin: 0 0 8px; }
+.uv-scope { margin: 0 0 8px; font-size: 13.5px; color: var(--text2); line-height: 1.6; }
 .uv-progress > * + * { margin-top: 10px; }
 .uv-rerun { margin: 0; }
 .uv-block { min-width: 0; }
