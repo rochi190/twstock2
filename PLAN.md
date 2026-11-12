@@ -252,7 +252,7 @@
 
 ### 換機器／續跑指引（2026-11-13 寫入，P2/P1 資料下載進行到一半時中斷）
 
-`data_cache/` 不在 git 內（可整個資料夾複製到新機器，或照下列步驟重建）。已完成並提交：P0、P3a、P3b(DEV)、P4a 程式與測試，以及 P2/P1 的特徵＋評估程式（`research/feat_*.py`、`run_*.py`，測試全綠）。**尚未完成**：FinMind 資料下載（下載時月營收約 174/300 檔），因此 `run_revenue`／`run_chips` 還沒跑出完整結果、P5 還沒做。續跑順序：
+**2026-11-13 更新：`data_cache/`（約 113 MB：價格 300 檔、美股、新聞 2927 則、`panel_v1.npz`、已下載的 187 檔月營收）已用 `git add -f` 一併提交，clone 後即可直接續跑，不必重建。下載只需執行 `research\resume.ps1`（依序 rev→inst→per→margin→hold，自動續跑）。** 下列步驟 1–2 僅在快取遺失時才需要。（`.gitignore` 仍忽略 `data_cache/`，之後新增的快取要用 `git add -f`。）已完成並提交：P0、P3a、P3b(DEV)、P4a 程式與測試，以及 P2/P1 的特徵＋評估程式（`research/feat_*.py`、`run_*.py`，測試全綠）。**尚未完成**：FinMind 資料下載（下載時月營收約 174/300 檔），因此 `run_revenue`／`run_chips` 還沒跑出完整結果、P5 還沒做。續跑順序：
 
 1. 價格快取（新機器才需要）：以 `backend.data.build_universe(backend.data._names_table(network=True,block=True)["items"], size=300)` 寫出 `data_cache/research/pool300.json`，再對每檔呼叫 `backend.data.get_price_data(code)`（約 10 分鐘）；然後 `python -m research.price_baseline` 會重建 `panel_v1.npz`。
 2. 美股：`python -m backend.altdata.usmarket`。
