@@ -244,11 +244,22 @@
 | P0 評估框架 | 完成 | 2026-11-13 | 30 個測試全綠；價格基準 DEV 已寫入 RESULTS.md 第一節（`rev_5` 為 h=5 反轉，IC −0.038、t −6.8）。`ic_report`/`residual_ic` 多一個 `cal` 參數（日期切分需要） |
 | P1 籌碼與評價 | 未開始 | | |
 | P2 月營收 | 未開始 | | |
-| P3 美股隔夜 | 未開始 | | |
-| P4a/b 新聞存檔與旗標 | 未開始 | | 越早開始存檔越好（沒有歷史可補） |
+| P3 美股隔夜 | P3a 完成；P3b DEV 完成、OOS 待跑 | 2026-11-13 | 抓取器＋對齊函式測試全綠；DEV：跳空 OOS R² 23%、盤前更新 Brier skill +5%（30/30 檔），但盤中報酬 IC≈0、衝擊日後無延續 → 「預測更準」成立、「可交易優勢」不成立。`research/overnight_spec.json` 已凍結，OOS 只能跑一次 |
+| P4a/b 新聞存檔與旗標 | P4a 完成；P4b 不在本輪範圍 | 2026-11-13 | `python -m backend.altdata.news --once` 已跑，2927 則；**未建立排程**（待使用者同意） |
 | P4c LLM 判讀 | 延後 | | 條件：存檔 ≥ 120 交易日 |
 | P5 OOS 驗證 | 未開始 | | 只能跑一次 |
 | P6 整合 | 待閘門 | | 需使用者同意 |
+
+### 換機器／續跑指引（2026-11-13 寫入，P2/P1 資料下載進行到一半時中斷）
+
+`data_cache/` 不在 git 內（可整個資料夾複製到新機器，或照下列步驟重建）。已完成並提交：P0、P3a、P3b(DEV)、P4a 程式與測試，以及 P2/P1 的特徵＋評估程式（`research/feat_*.py`、`run_*.py`，測試全綠）。**尚未完成**：FinMind 資料下載（下載時月營收約 174/300 檔），因此 `run_revenue`／`run_chips` 還沒跑出完整結果、P5 還沒做。續跑順序：
+
+1. 價格快取（新機器才需要）：以 `backend.data.build_universe(backend.data._names_table(network=True,block=True)["items"], size=300)` 寫出 `data_cache/research/pool300.json`，再對每檔呼叫 `backend.data.get_price_data(code)`（約 10 分鐘）；然後 `python -m research.price_baseline` 會重建 `panel_v1.npz`。
+2. 美股：`python -m backend.altdata.usmarket`。
+3. FinMind（可中斷續跑，已存在的檔案會跳過；遇 402/429 等一小時再跑同一指令）：依序 `python -m backend.altdata.finmind --datasets rev --universe 300`、`inst`、`per`、`margin`、`hold`（無 token 每個資料集約 1 小時）。
+4. `python -m research.run_revenue`、`python -m research.run_chips`（寫 RESULTS.md 第二、三節）。
+5. P5：依 §5 門檻選特徵 → 寫 `research/composite_spec.json` 並 commit → 跑一次 OOS（`spec_hash`）→ 判定 G1–G5。P3b 的 OOS 也只能跑一次：`python -m research.run_overnight --oos --spec-hash <sha256 of research/overnight_spec.json>`。
+6. 完成後更新上面狀態表並 commit；**不要 push、不要建立排程**，先問使用者。
 
 建議順序：**P4a（先讓存檔開始累積）→ P0 → P2 → P1 → P5 → P3 → P4b**。
 
