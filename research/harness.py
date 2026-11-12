@@ -387,7 +387,7 @@ def quintile_report(F, panel: Panel, mask, h: int, period: str, spec_hash=None, 
         net, bench = sim["ret"][use], simb["ret"][use]
         excess = net - bench
         n = int(use.sum())
-        rep = {"period": period, "h": int(h), "n_days": n, "mean_k": _f(k[k > 0].mean()) if (k > 0).any() else None,
+        rep = {"period": period, "h": int(h), "n_days": n, "mean_k": _f(k[(k > 0) & period_rows(cal, period, 0)].mean()) if ((k > 0) & period_rows(cal, period, 0)).any() else None,
                "ann_net": _f(_ann_geo(net)), "ann_bench": _f(_ann_geo(bench)),
                "ann_excess": _f(excess.mean() * DAYS_PER_YEAR) if n else None, "excess_t": None, "excess_p_two": None,
                "ann_excess_gross": _f((sim["gross"][use] - simb["gross"][use]).mean() * DAYS_PER_YEAR) if n else None,

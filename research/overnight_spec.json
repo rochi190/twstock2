@@ -1,0 +1,81 @@
+{
+  "name": "overnight_p3b",
+  "version": 1,
+  "plan_ref": "PLAN.md section 7 P3b (items 1, 2, 3); section 3 US row; section 0 rules 2, 3, 4, 5",
+  "frozen_note": "FROZEN when research/run_overnight.py first produced research/out/overnight_dev.json. Do not edit: the OOS run requires --spec-hash = sha256 of this file's bytes. Any edit invalidates the OOS look.",
+  "periods": {
+    "dev": ["2013-01-01", "2022-12-31"],
+    "dev_a": ["2013-01-01", "2017-12-31"],
+    "dev_b": ["2018-01-01", "2022-12-31"],
+    "oos": ["2023-01-01", null],
+    "period_axis": "Taipei trading day S of the open being predicted (the date on which the gap / close return is realised); same bounds as research.harness.PERIODS. DEV runs load price data only up to 2022-12-31."
+  },
+  "us_regressors": {
+    "names": ["SOX", "TSM", "NVDA"],
+    "series_files": "data_cache/alt/us/{SOX,TSM,NVDA}.json (backend.altdata.usmarket.daily_log_returns: SOX raw close, TSM and NVDA adjusted close, one-bar bad prints despiked)",
+    "alignment": "backend.altdata.usmarket.align_us_to_tw on the STOCK'S OWN bar dates: x[S] = sum of US log returns with US date D in [previous own bar date, S) (strictly D < S). A window with no US bar (US holiday) is filled with 0.0 (no news) via align_us_to_tw(empty=0.0); a window containing a NaN return stays NaN (no prediction)."
+  },
+  "gap_model": {
+    "target": "gap[S] = ln(adjOpen[S] / adjClose[S-1]) with adj_open = open*adjclose/close (PriceData.adj_open); S-1 is the previous bar of the same stock after dropping no-trade placeholder bars (engine._drop_placeholders)",
+    "regression": "EWMA-weighted least squares of gap on [1, r_SOX, r_TSM, r_NVDA]",
+    "ewma_halflife_bars": 120,
+    "weight_of_observation_j_when_predicting_S": "0.5 ** ((age) / 120) where age = (index of S) - 1 - (index of j); observation j is used only if j < S (coefficients are fitted on bars strictly before S, the prediction at S uses only x[S])",
+    "min_obs": 60,
+    "min_obs_note": "no prediction until at least 60 (gap, x) pairs exist before S",
+    "predicted_gap": "yhat[S] = [1, x[S]] . beta[<S]",
+    "benchmark_mean": "ybar[S] = EWMA-weighted mean gap of the same regression sample (<S), i.e. the intercept-only forecast",
+    "conditional_gap": "cond[S] = yhat[S] - ybar[S] = beta_slopes . (x[S] - EWMA mean of x); the part driven by the US move. The unconditional mean gap is already inside the engine mu, so only cond is added to mu.",
+    "r2_rolling": "EWMA-weighted in-sample R2 of the fit on bars < S, adjusted with n_eff = (sum w)^2 / sum w^2 and q = 4 parameters: 1 - (1-R2)(n_eff-1)/(n_eff-q); clipped to [0, 0.95]"
+  },
+  "gap_metrics": {
+    "oos_r2_vs_zero": "1 - sum (gap - yhat)^2 / sum gap^2, pooled over stocks and days of the period",
+    "oos_r2_vs_mean": "1 - sum (gap - yhat)^2 / sum (gap - ybar)^2 (ybar = causal EWMA mean, the 'historical mean' forecast)",
+    "loss_difference_test": "per date: mean over stocks of (e_benchmark^2 - e_model^2); mean and Newey-West HAC t (research.harness.hac_mean_t, h=1) -> date-clustered",
+    "direction_hit": "sign(yhat) == sign(gap) over stock-days with gap != 0; compared with (a) the share of gap>0 and its best-constant hit max(p, 1-p), (b) the causal benchmark sign(ybar); paired per-date difference with HAC t",
+    "per_stock": "the same R2 / hit per stock"
+  },
+  "premarket_update": {
+    "source": "backend.quant.engine.walk_forward(data, market, horizons=(1,), min_train=500, refit_every=21 (config.REFIT_EVERY), start_idx=<origin row of the first bar on/after 2013-01-01>), default cfg; market = TAIEX (backend.data INDEX_SYMBOL) cached bars; data = cached completed bars of the stock",
+    "dev_data_truncation": "for the DEV run the data AND the market are cut at 2022-12-31 before the walk-forward (rows <= cut are causal, so identical to the full run); the OOS run uses the full data",
+    "time_semantics": "origin = close of the previous own bar S-1; mu0, sigma0, p0 = walk-forward h=1 outputs at that origin; target R[S] = ln(adjC[S]/adjC[S-1]) (close to close, computed from the placeholder-free bars). The pre-market update at S uses only the PREDICTED conditional gap cond[S] (coefficients from bars < S, x[S] known before the S open) -- never the realised gap of S.",
+    "mu_updated": "mu1 = mu0 + cond",
+    "sigma_updated": "sigma1^2 = sigma0^2 * (1 - r2_rolling)",
+    "p_up_updated": "p1 = Phi(mu1 / sigma1)",
+    "p_up_updated_mu_only": "p1m = Phi(mu1 / sigma0)  (diagnostic: separates the mean shift from the variance shrink)",
+    "p_up_normal_baseline": "pn = Phi(mu0 / sigma0)  (same normal formula without the update; isolates the effect of the update from the engine's calibrated non-normal p_up)",
+    "outcome": "up = 1[R > 0]; flat days (R == 0) are excluded (p_up is defined as P(R>0 | R != 0), HANDOFF 2.4)",
+    "comparisons": [["update", "engine"], ["update", "norm"], ["update_mu_only", "norm"]],
+    "metrics": "Brier score and hit rate (p > 0.5 vs up) of each variant; paired per-date difference of the mean over stocks (dBrier = Brier_b - Brier_a, positive = a better), Newey-West HAC t (h=1); number of stocks improved; by-year dBrier"
+  },
+  "tradability": {
+    "intraday_return": "ln(adjClose[S] / adjOpen[S])",
+    "ic": "cross-sectional Spearman IC (research.harness.ic_series, min_xs=20) per day of cond[S] vs intraday return; mean and HAC t (h=1)",
+    "pooled_slope": "per date mean over stocks of cond*intraday; slope = mean(cond*intraday)/mean(cond^2); t = HAC t of the daily mean of cond*intraday",
+    "sign_strategy": "gross mean of sign(cond)*intraday per stock-day (buy at the S open, sell at the S close); HAC t on the per-date mean; the round trip cost of the plan is about 0.57 percent",
+    "shock": {
+      "series": "SOX",
+      "z": "z[S] = r_SOX_aligned[S] / sigma[S], sigma^2 = EWMA(lambda=0.94) of squared aligned SOX returns using only returns of days < S (seed: mean of the first 20 squared returns, z defined after 60 observations), on the union trading calendar of the stocks; US-holiday days (no new bar) are NaN, not 0",
+      "ewma_lambda": 0.94,
+      "seed_n": 20,
+      "min_obs": 60,
+      "threshold": 2.0,
+      "entry": "the S open already contains the gap, so it is NOT an entry price. Entry = open of the NEXT trading day S+1 (decision after the close of S), exit = open of S+6 (5 trading days later): y = ln(O[S+6]/O[S+1]) = harness forward_open_return(panel, 5) at row S.",
+      "horizon": 5,
+      "excess": "equal-weight mean of y over the selected stocks on that day (at least 20 stocks) minus the mean of that daily equal-weight y over all days of the period (unconditional drift); groups: z >= 2, z <= -2, and the sign-adjusted pooled sign(z)*excess; HAC t with h=5",
+      "context_columns": "equal-weight gap and intraday return on the event day S (to show that the move is already in the S open)"
+    }
+  },
+  "stocks": {
+    "pool": "data_cache/research/pool300.json (top-300 ordinary stocks by traded value, order = current liquidity rank)",
+    "rule": "take the first 30 entries of the pool, in pool order, that have at least 500 real (non-placeholder) bars strictly before 2013-01-01 so that the walk-forward can start at the first 2013 bar",
+    "n": 30,
+    "min_bars_before_dev": 500,
+    "known_limit": "the pool is today's liquidity ranking (survivor / look-back bias in WHICH stocks are included; the statistics are relative to each stock's own history so the effect on R2/Brier is second order)"
+  },
+  "outputs": {
+    "dev_json": "research/out/overnight_dev.json",
+    "oos_json": "research/out/overnight_oos.json",
+    "results_md": "docs/research/RESULTS.md (marked block 'overnight' / 'overnight_oos')"
+  },
+  "oos_protocol": "python -m research.run_overnight --oos --spec-hash <sha256 of this file>; research.harness guard + one row appended to docs/research/LOOKS.md; run once after review, never re-run with a changed spec."
+}
