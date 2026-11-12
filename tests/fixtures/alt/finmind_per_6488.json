@@ -1,0 +1,55 @@
+{
+"msg": "success",
+"status": 200,
+"data": [
+{
+"date": "2015-09-25",
+"stock_id": "6488",
+"dividend_yield": 0.0,
+"PER": 11.09,
+"PBR": 1.68
+},
+{
+"date": "2015-09-30",
+"stock_id": "6488",
+"dividend_yield": 0.0,
+"PER": 10.83,
+"PBR": 1.64
+},
+{
+"date": "2015-10-01",
+"stock_id": "6488",
+"dividend_yield": 0.0,
+"PER": 11.19,
+"PBR": 1.7
+},
+{
+"date": "2015-10-02",
+"stock_id": "6488",
+"dividend_yield": 0.0,
+"PER": 11.27,
+"PBR": 1.71
+},
+{
+"date": "2026-11-10",
+"stock_id": "6488",
+"dividend_yield": 1.26,
+"PER": 34.46,
+"PBR": 2.22
+},
+{
+"date": "2026-11-11",
+"stock_id": "6488",
+"dividend_yield": 1.21,
+"PER": 35.75,
+"PBR": 2.3
+},
+{
+"date": "2026-11-12",
+"stock_id": "6488",
+"dividend_yield": 1.24,
+"PER": 35.02,
+"PBR": 2.25
+}
+]
+}

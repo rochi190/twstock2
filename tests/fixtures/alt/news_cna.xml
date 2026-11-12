@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<rss version="2.0">
+  <channel>
+     <title>中央社即時新聞 財經新聞</title>
+     <link>https://www.cna.com.tw/list/aie.aspx</link>
+     <description>中央社即時新聞 財經新聞</description>
+     <language>zh-tw</language>
+     <copyright>中央通訊社</copyright>
+     <lastBuildDate>Thu, 12 Nov 2026 22:50:11 +0800</lastBuildDate>
+     <ttl>15</ttl>
+     <image>
+       <title>中央社即時新聞 財經新聞</title>
+       <width>114</width>
+       <height>67</height>
+       <link>https://www.cna.com.tw/list/aie.aspx</link>
+       <url>https://imgcdn.cna.com.tw/www/images/cna_info/cnalogo_176x117.jpg</url>
+     </image>
+     <item>
+     <title>宸鴻：電子書助攻第3季營收　前3季每股賺4.07元</title>
+     <link>https://www.cna.com.tw/news/afe/202611120375.aspx</link>
+     <guid isPermaLink="false">CNA/2026-11-12/202611120375</guid>
+     <pubDate>Thu, 12 Nov 2026 22:40:08 +0800</pubDate>
+     </item>
+     <item>
+     <title>黃仁勳辭去執行長　輝達盤前股價下殺逾10%</title>
+     <link>https://www.cna.com.tw/news/afe/202611120372.aspx</link>
+     <guid isPermaLink="false">CNA/2026-11-12/202611120372</guid>
+     <pubDate>Thu, 12 Nov 2026 22:28:02 +0800</pubDate>
+     </item>
+     <item>
+     <title>今彩539第115274期　頭獎1注中獎</title>
+     <link>https://www.cna.com.tw/news/ahel/202611120370.aspx</link>
+     <guid isPermaLink="false">CNA/2026-11-12/202611120370</guid>
+     <pubDate>Thu, 12 Nov 2026 22:08:57 +0800</pubDate>
+     </item>
+     <item>
+     <title>威力彩頭獎3.16億元1注獨得　獎落高雄市阿蓮區</title>
+     <link>https://www.cna.com.tw/news/ahel/202611120369.aspx</link>
+     <guid isPermaLink="false">CNA/2026-11-12/202611120369</guid>
+     <pubDate>Thu, 12 Nov 2026 22:06:55 +0800</pubDate>
+     </item>
+     </channel>
+</rss>

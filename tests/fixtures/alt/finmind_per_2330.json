@@ -1,0 +1,55 @@
+{
+"msg": "success",
+"status": 200,
+"data": [
+{
+"date": "2012-01-02",
+"stock_id": "2330",
+"dividend_yield": 3.99,
+"PER": 13.56,
+"PBR": 3.25
+},
+{
+"date": "2012-01-03",
+"stock_id": "2330",
+"dividend_yield": 3.95,
+"PER": 13.69,
+"PBR": 3.28
+},
+{
+"date": "2012-01-04",
+"stock_id": "2330",
+"dividend_yield": 3.94,
+"PER": 13.71,
+"PBR": 3.28
+},
+{
+"date": "2012-01-05",
+"stock_id": "2330",
+"dividend_yield": 3.93,
+"PER": 13.74,
+"PBR": 3.29
+},
+{
+"date": "2026-11-10",
+"stock_id": "2330",
+"dividend_yield": 0.96,
+"PER": 26.49,
+"PBR": 9.21
+},
+{
+"date": "2026-11-11",
+"stock_id": "2330",
+"dividend_yield": 0.92,
+"PER": 27.76,
+"PBR": 9.66
+},
+{
+"date": "2026-11-12",
+"stock_id": "2330",
+"dividend_yield": 0.94,
+"PER": 27.12,
+"PBR": 9.43
+}
+]
+}

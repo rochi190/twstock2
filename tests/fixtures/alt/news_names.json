@@ -1,0 +1,58 @@
+{
+ "items": {
+  "2317": {
+   "code": "2317",
+   "name": "鴻海",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "2330": {
+   "code": "2330",
+   "name": "台積電",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "2409": {
+   "code": "2409",
+   "name": "友達",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "2454": {
+   "code": "2454",
+   "name": "聯發科",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "3008": {
+   "code": "3008",
+   "name": "大立光",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "3227": {
+   "code": "3227",
+   "name": "原相",
+   "market": "TPEx",
+   "kind": "stock"
+  },
+  "1301": {
+   "code": "1301",
+   "name": "台塑",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "2002": {
+   "code": "2002",
+   "name": "中鋼",
+   "market": "TWSE",
+   "kind": "stock"
+  },
+  "2603": {
+   "code": "2603",
+   "name": "長榮",
+   "market": "TWSE",
+   "kind": "stock"
+  }
+ }
+}

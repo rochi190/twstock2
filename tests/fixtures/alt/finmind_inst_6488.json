@@ -1,0 +1,146 @@
+{
+"msg": "success",
+"status": 200,
+"data": [
+{
+"date": "2014-11-04",
+"stock_id": "6488",
+"buy": 5000,
+"name": "Foreign_Investor",
+"sell": 0
+},
+{
+"date": "2014-11-04",
+"stock_id": "6488",
+"buy": 0,
+"name": "Investment_Trust",
+"sell": 0
+},
+{
+"date": "2014-11-04",
+"stock_id": "6488",
+"buy": 0,
+"name": "Dealer",
+"sell": 0
+},
+{
+"date": "2014-11-05",
+"stock_id": "6488",
+"buy": 0,
+"name": "Foreign_Investor",
+"sell": 3000
+},
+{
+"date": "2014-11-05",
+"stock_id": "6488",
+"buy": 0,
+"name": "Investment_Trust",
+"sell": 0
+},
+{
+"date": "2014-11-05",
+"stock_id": "6488",
+"buy": 0,
+"name": "Dealer",
+"sell": 0
+},
+{
+"date": "2015-09-25",
+"stock_id": "6488",
+"buy": 867000,
+"name": "Foreign_Investor",
+"sell": 793000
+},
+{
+"date": "2015-09-25",
+"stock_id": "6488",
+"buy": 0,
+"name": "Investment_Trust",
+"sell": 0
+},
+{
+"date": "2015-09-25",
+"stock_id": "6488",
+"buy": 0,
+"name": "Dealer_self",
+"sell": 0
+},
+{
+"date": "2015-09-25",
+"stock_id": "6488",
+"buy": 0,
+"name": "Dealer_Hedging",
+"sell": 0
+},
+{
+"date": "2018-01-15",
+"stock_id": "6488",
+"buy": 161115,
+"name": "Foreign_Investor",
+"sell": 222000
+},
+{
+"date": "2018-01-15",
+"stock_id": "6488",
+"buy": 0,
+"name": "Foreign_Dealer_Self",
+"sell": 0
+},
+{
+"date": "2018-01-15",
+"stock_id": "6488",
+"buy": 200000,
+"name": "Investment_Trust",
+"sell": 29000
+},
+{
+"date": "2018-01-15",
+"stock_id": "6488",
+"buy": 50000,
+"name": "Dealer_self",
+"sell": 18000
+},
+{
+"date": "2018-01-15",
+"stock_id": "6488",
+"buy": 13000,
+"name": "Dealer_Hedging",
+"sell": 53000
+},
+{
+"date": "2026-11-12",
+"stock_id": "6488",
+"buy": 6405137,
+"name": "Foreign_Investor",
+"sell": 5663868
+},
+{
+"date": "2026-11-12",
+"stock_id": "6488",
+"buy": 0,
+"name": "Foreign_Dealer_Self",
+"sell": 0
+},
+{
+"date": "2026-11-12",
+"stock_id": "6488",
+"buy": 43119,
+"name": "Investment_Trust",
+"sell": 385000
+},
+{
+"date": "2026-11-12",
+"stock_id": "6488",
+"buy": 117201,
+"name": "Dealer_self",
+"sell": 194700
+},
+{
+"date": "2026-11-12",
+"stock_id": "6488",
+"buy": 267620,
+"name": "Dealer_Hedging",
+"sell": 384315
+}
+]
+}

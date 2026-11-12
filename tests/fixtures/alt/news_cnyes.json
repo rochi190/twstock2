@@ -1,0 +1,76 @@
+{
+ "items": {
+  "total": 1551,
+  "per_page": 30,
+  "current_page": 1,
+  "last_page": 52,
+  "next_page_url": "/media/api/v1/newslist/category/tw_stock?page=2",
+  "prev_page_url": null,
+  "from": 1,
+  "to": 30,
+  "data": [
+   {
+    "newsId": 6660936,
+    "title": "黃仁勳下台震撼AI產業鏈 法人：台廠迎訂單大挪移與評價修正",
+    "publishAt": 1794495870,
+    "stock": [],
+    "keyword": [
+     "台新投顧",
+     "AI供應鏈",
+     "輝達",
+     "黃仁勳"
+    ],
+    "categoryName": "台股新聞"
+   },
+   {
+    "newsId": 6660902,
+    "title": "鉅亨速報 - Factset 最新調查：中租-KY(5871-TW)EPS預估上修至12.05元，預估目標價為130元",
+    "publishAt": 1794492635,
+    "stock": [],
+    "keyword": [
+     "台股",
+     "市場預估",
+     "eps"
+    ],
+    "categoryName": "台股"
+   },
+   {
+    "newsId": 6660867,
+    "title": "原相(3227) 毛利率勝法人預期！營收微減之際，第 4 季仍看回升",
+    "publishAt": 1794490211,
+    "stock": [
+     "3227"
+    ],
+    "keyword": [
+     "IC設計",
+     "優分析"
+    ],
+    "categoryName": "台股新聞"
+   },
+   {
+    "newsId": 6660866,
+    "title": "電競滑鼠業績過半！原相(3227) 為何能抵禦 PC、NB 需求疲弱？",
+    "publishAt": 1794490211,
+    "stock": [],
+    "keyword": [
+     "IC設計",
+     "優分析"
+    ],
+    "categoryName": "台股新聞"
+   },
+   {
+    "newsId": 6660865,
+    "title": "無人載具拉貨放緩，原相(3227) CIS 第 4 季營收占比仍逾 10%",
+    "publishAt": 1794490211,
+    "stock": [],
+    "keyword": [
+     "IC設計",
+     "優分析"
+    ],
+    "categoryName": "台股新聞"
+   }
+  ]
+ },
+ "message": "成功",
+ "statusCode": 200
+}

@@ -1,0 +1,181 @@
+{
+"msg": "success",
+"status": 200,
+"data": [
+{
+"date": "2012-05-02",
+"stock_id": "2330",
+"buy": 38841300,
+"name": "Foreign_Investor",
+"sell": 32897643
+},
+{
+"date": "2012-05-02",
+"stock_id": "2330",
+"buy": 284000,
+"name": "Investment_Trust",
+"sell": 272000
+},
+{
+"date": "2012-05-02",
+"stock_id": "2330",
+"buy": 1774000,
+"name": "Dealer",
+"sell": 1043000
+},
+{
+"date": "2012-05-03",
+"stock_id": "2330",
+"buy": 19686790,
+"name": "Foreign_Investor",
+"sell": 12947290
+},
+{
+"date": "2012-05-03",
+"stock_id": "2330",
+"buy": 430000,
+"name": "Investment_Trust",
+"sell": 491105
+},
+{
+"date": "2012-05-03",
+"stock_id": "2330",
+"buy": 456000,
+"name": "Dealer",
+"sell": 620000
+},
+{
+"date": "2014-12-01",
+"stock_id": "2330",
+"buy": 35804576,
+"name": "Foreign_Investor",
+"sell": 38515962
+},
+{
+"date": "2014-12-01",
+"stock_id": "2330",
+"buy": 0,
+"name": "Investment_Trust",
+"sell": 417000
+},
+{
+"date": "2014-12-01",
+"stock_id": "2330",
+"buy": 1083000,
+"name": "Dealer_self",
+"sell": 159000
+},
+{
+"date": "2014-12-01",
+"stock_id": "2330",
+"buy": 699000,
+"name": "Dealer_Hedging",
+"sell": 249000
+},
+{
+"date": "2017-12-18",
+"stock_id": "2330",
+"buy": 8317600,
+"name": "Foreign_Investor",
+"sell": 13320902
+},
+{
+"date": "2017-12-18",
+"stock_id": "2330",
+"buy": 0,
+"name": "Foreign_Dealer_Self",
+"sell": 0
+},
+{
+"date": "2017-12-18",
+"stock_id": "2330",
+"buy": 0,
+"name": "Investment_Trust",
+"sell": 559000
+},
+{
+"date": "2017-12-18",
+"stock_id": "2330",
+"buy": 79000,
+"name": "Dealer_self",
+"sell": 22000
+},
+{
+"date": "2017-12-18",
+"stock_id": "2330",
+"buy": 105000,
+"name": "Dealer_Hedging",
+"sell": 13000
+},
+{
+"date": "2026-11-11",
+"stock_id": "2330",
+"buy": 0,
+"name": "Foreign_Dealer_Self",
+"sell": 0
+},
+{
+"date": "2026-11-11",
+"stock_id": "2330",
+"buy": 457610,
+"name": "Dealer_self",
+"sell": 552250
+},
+{
+"date": "2026-11-11",
+"stock_id": "2330",
+"buy": 440030,
+"name": "Dealer_Hedging",
+"sell": 196495
+},
+{
+"date": "2026-11-11",
+"stock_id": "2330",
+"buy": 21798150,
+"name": "Foreign_Investor",
+"sell": 15759831
+},
+{
+"date": "2026-11-11",
+"stock_id": "2330",
+"buy": 2572276,
+"name": "Investment_Trust",
+"sell": 187000
+},
+{
+"date": "2026-11-12",
+"stock_id": "2330",
+"buy": 0,
+"name": "Foreign_Dealer_Self",
+"sell": 0
+},
+{
+"date": "2026-11-12",
+"stock_id": "2330",
+"buy": 143570,
+"name": "Dealer_self",
+"sell": 441394
+},
+{
+"date": "2026-11-12",
+"stock_id": "2330",
+"buy": 73528,
+"name": "Dealer_Hedging",
+"sell": 285546
+},
+{
+"date": "2026-11-12",
+"stock_id": "2330",
+"buy": 18320224,
+"name": "Foreign_Investor",
+"sell": 22275642
+},
+{
+"date": "2026-11-12",
+"stock_id": "2330",
+"buy": 289745,
+"name": "Investment_Trust",
+"sell": 170000
+}
+]
+}

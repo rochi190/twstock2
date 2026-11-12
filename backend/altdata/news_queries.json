@@ -1,0 +1,20 @@
+{
+  "_comment": "Google News RSS search keywords for backend/altdata/news.py (one request per keyword, appended with '+when:1d').",
+  "queries": [
+    "輝達",
+    "台積電",
+    "聯準會",
+    "關稅",
+    "費城半導體",
+    "黃仁勳",
+    "台股",
+    "美股",
+    "川普",
+    "美元 台幣",
+    "日圓",
+    "原油",
+    "AI 伺服器",
+    "記憶體 DRAM",
+    "降息"
+  ]
+}
